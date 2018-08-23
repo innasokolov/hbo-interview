@@ -1,0 +1,66 @@
+<project name="interview-questions" default="test">
+
+    <property name="output" value="${basedir}/target"/>
+    <property name="src-dir" value="${basedir}/src/main/java"/>
+    <property name="test-src-dir" value="${basedir}/src/test/java"/>
+    <property name="compile-dir" value="${output}/classes"/>
+    <property name="test-compile-dir" value="${output}/test-classes"/>
+    <property name="test-resources-dir" value="${basedir}/src/test/resources"/>
+    <property name="artifact-id" value="interview-questions"/>
+    <property name="version" value="1.0-SNAPSHOT"/>
+    <property name="artifact-name" value="${artifact-id}-${version}.jar"/>
+    <property name="test-artifact-name" value="${artifact-id}-${version}-test.jar"/>
+    <property name="lib" value="${basedir}/lib"/>
+    <property name="test-reports" value="${output}/reports"/>
+
+    <target name="clean">
+        <delete dir="${output}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${compile-dir}"/>
+        <javac srcdir="${src-dir}" destdir="${compile-dir}"/>
+    </target>
+
+    <target name="jar" depends="compile">
+        <jar destfile="${output}/${artifact-name}" basedir="${compile-dir}"/>
+    </target>
+
+    <path id="test-classpath.compile">
+        <pathelement path="${output}/${artifact-name}"/>
+        <pathelement path="${lib}/junit-4.10.jar"/>
+    </path>
+
+    <target name="test-compile" depends="jar">
+        <mkdir dir="${test-compile-dir}"/>
+        <javac srcdir="${test-src-dir}" destdir="${test-compile-dir}" classpathref="test-classpath.compile"/>
+    </target>
+
+    <target name="test-jar" depends="test-compile">
+        <jar destfile="${output}/${test-artifact-name}">
+            <fileset dir="${test-compile-dir}"/>
+            <fileset dir="${test-resources-dir}"/>
+        </jar>
+    </target>
+
+    <path id="test-classpath.junit">
+        <pathelement path="${output}/${artifact-name}"/>
+        <pathelement path="${lib}/junit-4.10.jar"/>
+        <pathelement path="${output}/${test-artifact-name}"/>
+    </path>
+
+    <target name="test" depends="test-jar">
+        <mkdir dir="${test-reports}"/>
+        <junit printsummary="true" fork="true">
+            <classpath refid="test-classpath.junit"/>
+            <batchtest todir="${test-reports}">
+                <fileset dir="${test-compile-dir}">
+                    <include name="**/*Test.class"/>
+                    <exclude name="**/*AbstractTest.class"/>
+                </fileset>
+                <formatter type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
+</project>
